@@ -21,6 +21,59 @@ def index():
 
 # start building your API here
 
+#add view for getting all games
+@app.route('/games')
+def games():
+    #initialize an empty list to store all games
+    games = []
+
+    #iterate through all games and return a list with dictionaries for each game
+    for game in Game.query.all():
+        game_dict = game.to_dict()
+        games.append(game_dict)
+        #return the list of games
+    response = make_response(games,
+                              200,
+                              {"Content-Type": "application/json"}
+                            )
+    return response
+
+#Add view for getting a game by its id
+@app.route('/games/<int:id>')
+def game_by_id(id):
+    game = Game.query.filter(Game.id == id).first()
+    
+    game_dict = game.to_dict()
+
+    response = make_response(
+        game_dict,
+        200
+    )
+
+    return response
+
+
+#Add view for getting all users
+#reviews are excluded from each user by passing a rule into the `to_dict()` method
+@app.route('/games/users/<int:id>')
+def game_users_by_id(id):
+    game = Game.query.filter(Game.id == id).first()
+
+    # use association proxy to get users for a game without the reviews
+    #users = [user.to_dict(rules=("-reviews",)) for user in game.users] or use below:
+    users = []
+    for user in game.users:
+        user_dict = user.to_dict(rules=("-reviews",))
+        users.append(user_dict)
+
+    response = make_response(
+        jsonify(users),
+        200
+    )
+
+    return response
+
+
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
